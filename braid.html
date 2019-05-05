@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Braid</title>
+		<style type="text/css">
+		html,body {
+			margin: 0;
+			padding: 0;
+		}
+		</style>
+		<script type="text/javascript">
+			"use strict";
+
+			var SEG_LEN = 50;
+			var LINE_WIDTH = 50;
+			var LINE_SPACING = 50;
+			var NUM_STRANDS = 4;
+
+			function generate_pattern(strands){
+				var unit = [[],[]];
+				for(var i = 0; i < (strands - 1); i += 2){
+					unit[0].push([i,i+1]);
+				}
+				for(var i = 2; i < strands; i += 2) {
+					unit[1].push([i,i-1]);
+				}
+				return unit;
+			}
+
+			window.addEventListener("load", function(){
+				var braid = document.getElementById("braid");
+				braid.drawBraid = drawBraid;
+				braid.drawBraid(NUM_STRANDS);
+			});
+
+			function drawBraid(strands){
+				var ctx = this.getContext("2d");
+				var pattern = generate_pattern(strands);
+				ctx.lineWidth = LINE_WIDTH;
+				//ctx.lineCap = "round";
+				ctx.lineJoin = "round";
+				var strokes = new Array(strands);
+				var xPos = new Array(strands);
+				for(var i = 0; i < strands; i++)
+				{
+					xPos[i] = LINE_WIDTH + i * LINE_SPACING + (LINE_SPACING / 2);
+					strokes[i] = randomColorCode();
+					//strokes[i] = "hsl(" + ((i / strands) * 360) + ", 100%, 50%)"; // rainbow
+				}
+				var unitLen = pattern.length;
+				for(var y = -(SEG_LEN * 2); y <= this.height; y += (SEG_LEN * unitLen))
+				{
+					for(var u = 0; u < unitLen; u++)
+					{
+						var yd = y + (u * SEG_LEN);
+						var row = pattern[u];
+						for(var i = 0; i < row.length; i++){
+							var cross = row[i];
+							var over = cross[0];
+							var under = cross[1];
+							var endY;
+
+							ctx.beginPath();
+							ctx.strokeStyle = strokes[under];
+							ctx.moveTo(xPos[under], yd);
+							endY = yd + SEG_LEN;
+							ctx.lineTo(xPos[over], endY);
+							if(over === 0 || over === (strands - 1)) {
+								endY += SEG_LEN;
+								ctx.lineTo(xPos[over], endY);
+							}
+							ctx.stroke();
+							//draw end cap
+							ctx.fillStyle = ctx.strokeStyle;
+							ctx.fillCircle(xPos[over], endY, ctx.lineWidth / 2.0);
+
+							ctx.beginPath();
+							ctx.strokeStyle = strokes[over];
+							ctx.moveTo(xPos[over], yd);
+							endY = yd + SEG_LEN;
+							ctx.lineTo(xPos[under], endY);
+							if(under === 0 || under === (strands - 1)) {
+								endY += SEG_LEN;
+								ctx.lineTo(xPos[under], endY);
+							}
+							ctx.stroke();
+							//draw end cap
+							ctx.fillStyle = ctx.strokeStyle;
+							ctx.fillCircle(xPos[under], endY, ctx.lineWidth / 2.0);
+
+							strokes.swap(over, under);
+						}
+					}
+				}
+			}
+
+			function randomChannel(){
+				return Math.floor(Math.random() * 0x100);
+			}
+
+			function randomColor(){
+				return [randomChannel(), randomChannel(), randomChannel()];
+			}
+
+			function colorFromArray(array){
+				return "rgb(" + array.join(",") + ")";
+			}
+
+			function randomColorCode() {
+				return colorFromArray(randomColor());
+			}
+
+			Array.prototype.swap = function(i,j){
+				var temp = this[i];
+				this[i] = this[j];
+				this[j] = temp;
+			};
+
+			Array.prototype.rearrange = function(a){
+				var newA = new Array(this.length);
+				for(var i = 0; i < this.length; i++)
+				{
+					newA[i] = this[a[i]];
+				}
+				return newA;
+			}
+
+			CanvasRenderingContext2D.prototype.fillCircle = function(x, y, r){
+				this.beginPath();
+				this.arc(x, y, r, 0, 2 * Math.PI);
+				this.fill();
+			};
+		</script>
+	</head>
+	<body>
+		<canvas width="1500" height="1500" id="braid"></canvas>
+	</body>
+</html>
