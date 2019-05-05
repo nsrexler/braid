@@ -14,7 +14,7 @@
 			var SEG_LEN = 50;
 			var LINE_WIDTH = 50;
 			var LINE_SPACING = 50;
-			var NUM_STRANDS = 4;
+			//var NUM_STRANDS = 4;
 
 			function generate_pattern(strands){
 				var unit = [[],[]];
@@ -27,14 +27,18 @@
 				return unit;
 			}
 
+			var braid = null;
+
 			window.addEventListener("load", function(){
-				var braid = document.getElementById("braid");
+				braid = document.getElementById("braid");
 				braid.drawBraid = drawBraid;
-				braid.drawBraid(NUM_STRANDS);
+				braid.drawBraid();
 			});
 
 			function drawBraid(strands){
+				strands = strands || parseInt(document.getElementById("strands").value)
 				var ctx = this.getContext("2d");
+				ctx.clearRect(0,0,this.width,this.height);
 				var pattern = generate_pattern(strands);
 				ctx.lineWidth = LINE_WIDTH;
 				//ctx.lineCap = "round";
@@ -133,6 +137,10 @@
 		</script>
 	</head>
 	<body>
-		<canvas width="1500" height="1500" id="braid"></canvas>
+		<label>Strands: <input type="number" id="strands" value="3" min="2" step="1" oninput="braid.drawBraid()" /></label>
+		<button type="button" onclick="braid.drawBraid()">New Colors</button>
+		<br />
+		<br />
+		<canvas width="1500" height="1000" id="braid"></canvas>
 	</body>
 </html>
